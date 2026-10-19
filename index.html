@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Viewer</title>
+    <link rel="icon" href="favicon.png" type="image/x-icon" />
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
+    <link href="vendor/bootstrap-icons-1.13.2/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="vendor/panzoom-4.6.0/panzoom.min.js"></script>
+    <script src="js/constants.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/toast.js" defer></script>
+    <script src="js/main.js" defer></script>
+  </head>
+  <body class="dark-theme">
+    <div class="bg-image"></div>
+    <div id="drop-area" class="app" ondrop="handleDrop(event)" ondragover="event.preventDefault()">
+      <div class="screen input-screen">
+        <h1 class="title">Image Viewer</h1>
+        <p class="text-muted">Your Window to Every Pixel</p>
+        <label class="image-input">
+          <i class="bi bi-image icon"></i>
+          <span class="button">
+            Choose Image
+            <input type="file" accept="image/*" class="hidden" onchange="handleFiles(this.files)" multiple />
+          </span>
+          <p>or drag and drop an image here</p>
+        </label>
+        <div class="message text-muted">Enjoy a fast, sleek, and intuitive way to view, zoom, and organize your photos. Whether it's a quick glance or a deep dive into the details, we've made it seamless.</div>
+      </div>
+
+      <div class="screen image-screen hidden">
+        <div class="image-board-outer">
+          <div class="image-board">
+            <div id="image-container">
+              <img />
+            </div>
+
+            <div class="overlay-images"></div>
+          </div>
+        </div>
+
+        <div class="control-bar">
+          <button class="item prev" onclick="displayImage(-1)"><i class="bi bi-arrow-left"></i></button>
+          <button class="item next" onclick="displayImage(1)"><i class="bi bi-arrow-right"></i></button>
+          <button class="item animation" onclick="toggleAnimation()"><i class="bi bi-play-btn"></i></button>
+          <button class="item fit-screen" onclick="fitImage()"><i class="bi bi-arrows-fullscreen"></i></button>
+          <button class="item home" onclick="goHome()"><i class="bi bi-house-door"></i></button>
+          <button class="item fullscreen" onclick="toggleFullscreen()"><i class="bi bi-fullscreen"></i></button>
+          <label class="item add-bottom">
+            <i class="bi bi-plus-circle"></i>
+            <input type="file" accept="image/*" onchange="addOverlayImages(this.files)" multiple hidden />
+          </label>
+          <button class="item" onclick="rotateImage(-1)"><i class="bi bi-arrow-counterclockwise"></i></button>
+          <button class="item" onclick="rotateImage(1)"><i class="bi bi-arrow-clockwise"></i></button>
+          <button class="item pan-mode-btn" onclick="togglePanMode()"><i class="bi bi-unlock"></i></button>
+        </div>
+
+        <button class="stop-animation-btn" onclick="stopAnimation()">
+          <i class="bi bi-play-btn"></i>
+        </button>
+      </div>
+
+      <div class="toast hidden"></div>
+    </div>
+  </body>
+</html>
