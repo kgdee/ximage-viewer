@@ -225,3 +225,7 @@ function cycle(value, max = 0.8, min = 0, step = 0.2) {
 
   return value;
 }
+
+function nextFrame() {
+  return new Promise((resolve) => requestAnimationFrame(resolve));
+}

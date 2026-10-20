@@ -2,7 +2,7 @@ const dropArea = document.getElementById("drop-area");
 const inputScreen = document.querySelector(".input-screen");
 const imageInput = inputScreen.querySelector(".image-input input");
 const imageScreen = document.querySelector(".image-screen");
-const imageBoardOuter = document.querySelector(".image-board-outer");
+const viewport = document.querySelector(".viewport");
 const imageBoard = document.querySelector(".image-board");
 const imageContainer = document.querySelector("#image-container");
 const imageEl = imageContainer.querySelector("img");
@@ -20,8 +20,10 @@ let panzooms = [];
 let activeImageEl = imageBoard;
 let isPanMode = false;
 
-applyPanzoom(imageBoard);
-panzooms[0].setOptions({ disablePan: false, disableZoom: false });
+document.addEventListener("DOMContentLoaded", () => {
+  applyPanzoom(imageBoard);
+  panzooms[0].setOptions({ disablePan: false, disableZoom: false });
+});
 
 function applyPanzoom(el) {
   const panzoom = Panzoom(el, {
@@ -50,8 +52,8 @@ function applyPanzoom(el) {
   el.style.overflow = "visible";
 }
 
-function togglePanMode() {
-  isPanMode = !isPanMode;
+function togglePanMode(force) {
+  isPanMode = force !== undefined ? force : !isPanMode;
   overlayImagesEl.style.pointerEvents = isPanMode ? "none" : null;
   panzooms[0].setOptions({ disablePan: !isPanMode, disableZoom: !isPanMode });
   document.querySelector(".pan-mode-btn").innerHTML = isPanMode ? `<i class="bi bi-lock"></i>` : `<i class="bi bi-unlock"></i>`;
@@ -113,14 +115,15 @@ function goHome() {
 
 function toggleAnimation() {
   if (!isImageDisplayed) return;
-  isAnimating = true;
 
+  isAnimating = true;
   animationDuration = cycle(animationDuration);
 
   toggleJitter(true, { x: 2, y: 5 });
   imageBoard.style.animation = animationDuration > 0 ? `bounce ${animationDuration}s ease-in-out infinite` : null;
   imageBoard.style.pointerEvents = "none";
   toggleControlBar(false);
+  togglePanMode(true);
 }
 
 function stopAnimation() {
@@ -140,11 +143,11 @@ function toggleJitter(force = true, transform = {}) {
   if (force) {
     clearInterval(jitterInterval);
     jitterInterval = setInterval(() => jitter(x, y, scale), 500);
-    imageBoardOuter.style.transition = "1s";
+    viewport.style.transition = "1s";
   } else {
     clearInterval(jitterInterval);
-    imageBoardOuter.style.transform = null;
-    imageBoardOuter.style.transition = null;
+    viewport.style.transform = null;
+    viewport.style.transition = null;
   }
 }
 
@@ -153,7 +156,7 @@ function jitter(strengthX = 10, strengthY = 10, scale = 1) {
   const y = Math.random() * strengthY;
   const newScale = scale + Math.random() * 0.02;
 
-  imageBoardOuter.style.transform = `translate(${x}px, ${y}px) scale(${newScale})`;
+  viewport.style.transform = `translate(${x}px, ${y}px) scale(${newScale})`;
 }
 
 function moveImage(x, y) {
@@ -179,6 +182,17 @@ async function addOverlayImages(files) {
     overlayImagesEl.appendChild(imageEl);
     applyPanzoom(imageEl.lastElementChild);
   }
+
+  document.querySelector(".add-overlay-btn").classList.toggle("hidden", true);
+  document.querySelector(".remove-overlay-btn").classList.toggle("hidden", false);
+}
+
+function removeOverlayImages() {
+  overlayImagesEl.innerHTML = "";
+  panzooms.length = 1;
+
+  document.querySelector(".add-overlay-btn").classList.toggle("hidden", false);
+  document.querySelector(".remove-overlay-btn").classList.toggle("hidden", true);
 }
 
 function rotateImage(direction = 1, value = 3) {
@@ -186,6 +200,11 @@ function rotateImage(direction = 1, value = 3) {
   const total = current + (direction > 0 ? value : -value);
   activeImageEl.firstElementChild.style.rotate = `${total}deg`;
 }
+
+viewport.addEventListener("click", async () => {
+  toggleControlBar();
+  if (isAnimating) toggleAnimation();
+});
 
 const keyActions = {
   Space: () => displayImage(currentFile + 1),
@@ -208,9 +227,4 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
     action();
   }
-});
-
-document.addEventListener("click", function (e) {
-  if (!controlBar.contains(e.target)) toggleControlBar();
-  if (!controlBar.contains(e.target) && isAnimating) toggleAnimation();
 });
