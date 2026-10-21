@@ -229,3 +229,10 @@ function cycle(value, max = 0.8, min = 0, step = 0.2) {
 function nextFrame() {
   return new Promise((resolve) => requestAnimationFrame(resolve));
 }
+
+function createElement(htmlText) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlText, "text/html");
+  const element = doc.body.firstChild; // Extracts the parsed element
+  return element
+}

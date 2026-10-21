@@ -6,7 +6,7 @@ const viewport = document.querySelector(".viewport");
 const imageBoard = document.querySelector(".image-board");
 const imageContainer = document.querySelector("#image-container");
 const imageEl = imageContainer.querySelector("img");
-const overlayImagesEl = document.querySelector(".overlay-images");
+const stickersEl = document.querySelector(".stickers");
 const panzoomArea = document.getElementById("panzoom-area");
 const controlBar = document.querySelector(".control-bar");
 
@@ -19,10 +19,13 @@ let animationDuration = 0;
 let panzooms = [];
 let activeImageEl = imageBoard;
 let isPanMode = false;
+let currentStickers = [];
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   applyPanzoom(imageBoard);
   panzooms[0].setOptions({ disablePan: false, disableZoom: false });
+  const loadedStickers = await DB.getItems("currentStickers");
+  currentStickers = [...INITIAL_STICKERS, ...loadedStickers];
 });
 
 function applyPanzoom(el) {
@@ -54,7 +57,7 @@ function applyPanzoom(el) {
 
 function togglePanMode(force) {
   isPanMode = force !== undefined ? force : !isPanMode;
-  overlayImagesEl.style.pointerEvents = isPanMode ? "none" : null;
+  stickersEl.style.pointerEvents = isPanMode ? "none" : null;
   panzooms[0].setOptions({ disablePan: !isPanMode, disableZoom: !isPanMode });
   document.querySelector(".pan-mode-btn").innerHTML = isPanMode ? `<i class="bi bi-lock"></i>` : `<i class="bi bi-unlock"></i>`;
 }
@@ -80,7 +83,7 @@ function handleFiles(files) {
   currentFiles = shuffle(currentFiles);
 
   displayImage(0);
-  toggleFullscreen(true);
+  if (!isLocalhost) toggleFullscreen(true);
 }
 
 async function displayImage(direction = 0, shouldStopAnimation = true) {
@@ -102,6 +105,7 @@ async function displayImage(direction = 0, shouldStopAnimation = true) {
   isImageDisplayed = true;
   fitImage();
   document.querySelector(".bg-image").style.backgroundImage = `url("${URL.createObjectURL(file)}")`;
+  ImageTransform.reset();
 }
 
 function goHome() {
@@ -124,6 +128,7 @@ function toggleAnimation() {
   imageBoard.style.pointerEvents = "none";
   toggleControlBar(false);
   togglePanMode(true);
+  document.querySelector(".stop-animation-btn").classList.toggle("hidden", false);
 }
 
 function stopAnimation() {
@@ -133,6 +138,7 @@ function stopAnimation() {
   imageBoard.style.pointerEvents = null;
   toggleJitter(false);
   toggleControlBar(true);
+  document.querySelector(".stop-animation-btn").classList.toggle("hidden", true);
 }
 
 function toggleJitter(force = true, transform = {}) {
@@ -168,38 +174,78 @@ function toggleControlBar(force) {
   controlBar.classList.toggle("sm-hidden", shouldHide);
 }
 
-async function addOverlayImages(files) {
-  files = Array.from(files);
-
+async function addStickers(files) {
   for (const file of files) {
-    const imageUrl = await getFileDataUrl(file);
-    const imageEl = document.createElement("div");
-    imageEl.className = "overlay-image";
-    imageEl.innerHTML = `
-      <div>
-        <img src="${imageUrl}">
-      </div>`;
-    overlayImagesEl.appendChild(imageEl);
-    applyPanzoom(imageEl.lastElementChild);
+    const sticker = {
+      name: getFileName(file),
+      imageUrl: await getFileDataUrl(file),
+    };
+    currentStickers.push(sticker);
+    await DB.putItem("currentStickers", sticker);
+  }
+}
+
+async function resetStickers() {
+  currentStickers = INITIAL_STICKERS;
+  await DB.clearStore("currentStickers");
+}
+
+function appendSticker(index) {
+  const sticker = currentStickers[index];
+
+  const htmlText = `
+      <div class="sticker" ondblclick="removeStickers()">
+        <div>
+          <img src="${sticker.imageUrl}">
+        </div>
+      </div>
+    `;
+
+  const stickerEl = createElement(htmlText);
+  stickersEl.appendChild(stickerEl);
+  applyPanzoom(stickerEl);
+}
+
+function removeStickers() {
+  stickersEl.innerHTML = "";
+  panzooms.length = 1;
+}
+
+const ImageTransform = (() => {
+  function rotate(direction = 1, value = 3) {
+    const current = parseFloat(activeImageEl.firstElementChild.style.rotate) || 0;
+    const total = current + (direction > 0 ? value : -value);
+    activeImageEl.firstElementChild.style.rotate = `${total}deg`;
   }
 
-  document.querySelector(".add-overlay-btn").classList.toggle("hidden", true);
-  document.querySelector(".remove-overlay-btn").classList.toggle("hidden", false);
-}
+  function scale(direction = 1) {
+    const factor = direction > 0 ? 1.2 : 0.8;
+    // Get the current computed transform matrix of the element
+    const matrix = new DOMMatrix(window.getComputedStyle(activeImageEl.firstElementChild).transform);
 
-function removeOverlayImages() {
-  overlayImagesEl.innerHTML = "";
-  panzooms.length = 1;
+    // Multiply the current scale by the new factor (applies to both X and Y)
+    matrix.scaleSelf(factor, factor);
 
-  document.querySelector(".add-overlay-btn").classList.toggle("hidden", false);
-  document.querySelector(".remove-overlay-btn").classList.toggle("hidden", true);
-}
+    // Apply the updated transform back to the element
+    activeImageEl.firstElementChild.style.transform = matrix.toString();
+  }
 
-function rotateImage(direction = 1, value = 3) {
-  const current = parseFloat(activeImageEl.firstElementChild.style.rotate) || 0;
-  const total = current + (direction > 0 ? value : -value);
-  activeImageEl.firstElementChild.style.rotate = `${total}deg`;
-}
+  function flip() {
+    if (activeImageEl.firstElementChild.style.scale.startsWith("-1")) {
+      activeImageEl.firstElementChild.style.scale = "1 1";
+    } else {
+      activeImageEl.firstElementChild.style.scale = "-1 1";
+    }
+  }
+
+  function reset() {
+    activeImageEl.firstElementChild.style.transform = null;
+    activeImageEl.firstElementChild.style.rotate = null;
+    activeImageEl.firstElementChild.style.scale = null;
+  }
+
+  return { rotate, scale, flip, reset };
+})();
 
 viewport.addEventListener("click", async () => {
   toggleControlBar();

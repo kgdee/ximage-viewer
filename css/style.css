@@ -1,77 +1,7 @@
-@font-face {
-  font-family: "Poppins";
-  src: url("../assets/fonts/Poppins-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-:root {
-  --bg-color: #ffffff;
-  --text-color: #333;
-  --border-color: rgba(0, 0, 0, 0.5);
-  --label-color: #eee;
-  --red: #f44336;
-  --green: #4caf50;
-  --blue: #3f51b5;
-  --lightblue: #2196f3;
-}
-
-.dark-theme {
-  --bg-color: #222;
-  --text-color: #eee;
-  --border-color: rgba(255, 255, 255, 0.5);
-  --label-color: #333;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-  border: none;
-  text-decoration: none;
-  line-height: 1;
-}
-
-button {
-  cursor: pointer;
-}
-
-.button {
-  display: inline-block;
-  padding: 8px 16px;
-  background: var(--green);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.truncated {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
 body {
   font-family: "Poppins", sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 .bg-image {
@@ -92,7 +22,7 @@ body {
   overflow: hidden;
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,6 +57,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
   }
 
   .image-input .icon {
@@ -179,44 +110,71 @@ body {
     object-fit: contain;
   }
 
-  .overlay-image {
-    height: 50px;
+  @scope (.stickers) {
+    .sticker {
+      height: 50px;
+    }
+
+    .sticker > * {
+      width: max-content;
+      height: max-content;
+    }
+
+    .sticker img {
+      min-width: 100px;
+      user-select: none;
+      object-fit: contain;
+      pointer-events: none;
+    }
   }
 
-  .overlay-image > * {
-    width: max-content;
-    height: max-content;
-  }
+  @scope (.control-bar) {
+    :scope {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, 64px);
+      justify-content: space-between;
+      max-width: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
 
-  .overlay-image img {
-    min-width: 100px;
-    user-select: none;
-    object-fit: contain;
-    pointer-events: none;
-  }
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background-color: transparent;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
 
-  .control-bar {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 64px);
-    justify-content: space-between;
-    max-width: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
+    .transform-control {
+      position: absolute;
+      bottom: calc(100% + 5px);
+      right: 0;
+      display: flex;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
 
-  .control-bar .item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background-color: transparent;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
+    .transform-control .item {
+      padding: 10px;
+    }
+
+    /* Medium screens (Tablets, up to 768px wide) */
+    @media (max-width: 768px) {
+    }
+
+    /* Small screens (Phones, up to 480px wide) */
+    @media (max-width: 480px) {
+      :scope {
+        width: 100%;
+      }
+    }
   }
 
   .stop-animation-btn {
@@ -227,41 +185,6 @@ body {
     width: 100px;
     height: 100px;
     opacity: 0;
-  }
-
-  /* Medium screens (Tablets, up to 768px wide) */
-  @media (max-width: 768px) {
-  }
-
-  /* Small screens (Phones, up to 480px wide) */
-  @media (max-width: 480px) {
-    .control-bar {
-      width: 100%;
-    }
-  }
-}
-
-@scope (.toast) {
-  :scope {
-    pointer-events: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 10px;
-  }
-
-  .item {
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 5px;
-    width: max-content;
-    max-width: 100%;
   }
 }
 
@@ -274,6 +197,29 @@ body {
   }
   100% {
     margin-top: 15px;
+  }
+}
+
+@scope (.stickers-modal) {
+  .items-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    overflow-y: auto;
+  }
+
+  .items-grid .item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+
+  .items-grid .item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
   }
 }
 

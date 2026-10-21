@@ -7,12 +7,15 @@
     <link rel="icon" href="favicon.png" type="image/x-icon" />
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
     <link href="vendor/bootstrap-icons-1.13.2/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/utils.css" />
     <link rel="stylesheet" href="css/style.css" />
     <script src="vendor/panzoom-4.6.0/panzoom.min.js"></script>
     <script src="js/constants.js" defer></script>
     <script src="js/utils.js" defer></script>
+    <script src="js/db.js" defer></script>
     <script src="js/toast.js" defer></script>
     <script src="js/main.js" defer></script>
+    <script src="js/stickersModal.js" defer></script>
   </head>
   <body class="dark-theme">
     <div class="bg-image"></div>
@@ -38,7 +41,7 @@
               <img />
             </div>
 
-            <div class="overlay-images"></div>
+            <div class="stickers"></div>
           </div>
         </div>
 
@@ -49,17 +52,40 @@
           <button class="item fit-screen" onclick="fitImage()"><i class="bi bi-arrows-fullscreen"></i></button>
           <button class="item home" onclick="goHome()"><i class="bi bi-house-door"></i></button>
           <button class="item fullscreen" onclick="toggleFullscreen()"><i class="bi bi-fullscreen"></i></button>
-          <label class="item add-overlay-btn">
-            <i class="bi bi-plus-circle"></i>
-            <input type="file" accept="image/*" onchange="addOverlayImages(this.files)" multiple hidden />
-          </label>
+          <button class="item" onclick="StickersModal.open()"><i class="bi bi-plus-circle"></i></button>
           <button class="item remove-overlay-btn hidden" onclick="removeOverlayImages()"><i class="bi bi-dash-circle"></i></button>
-          <button class="item" onclick="rotateImage(-1)"><i class="bi bi-arrow-counterclockwise"></i></button>
-          <button class="item" onclick="rotateImage(1)"><i class="bi bi-arrow-clockwise"></i></button>
           <button class="item pan-mode-btn" onclick="togglePanMode()"><i class="bi bi-unlock"></i></button>
+
+          <div class="transform-control">
+            <button class="item" onclick="ImageTransform.scale(1)"><i class="bi bi-zoom-in"></i></button>
+            <button class="item" onclick="ImageTransform.scale(-1)"><i class="bi bi-zoom-out"></i></button>
+            <button class="item" onclick="ImageTransform.rotate(-1)"><i class="bi bi-arrow-counterclockwise"></i></button>
+            <button class="item" onclick="ImageTransform.rotate(1)"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="item" onclick="ImageTransform.flip()"><i class="bi bi-vr"></i></button>
+          </div>
         </div>
 
-        <button class="stop-animation-btn" onclick="stopAnimation()">
+        <!-- Stickers modal -->
+        <div class="stickers-modal modal hidden" onclick="StickersModal.close()">
+          <div class="modal-content" onclick="stopPropagation(event)">
+            <button class="close-btn" onclick="StickersModal.close()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="modal-title">Select sticker</div>
+
+            <div class="modal-body items-grid"></div>
+
+            <div class="modal-actions">
+              <label class="button">
+                Add
+                <input type="file" accept="image/*" onchange="StickersModal.handleAdd(this.files)" multiple hidden />
+              </label>
+              <button class="button" onclick="StickersModal.handleReset()">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="stop-animation-btn hidden" onclick="stopAnimation()">
           <i class="bi bi-play-btn"></i>
         </button>
       </div>
